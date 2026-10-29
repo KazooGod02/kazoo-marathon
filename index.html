@@ -25,6 +25,12 @@
   html, body { height: 100%; background: var(--bg); overflow: hidden; }
   body { font-family: 'Space Grotesk', sans-serif; color: #fff; }
 
+  /* sin selección ni resaltado azul al tocar o hacer clic */
+  html { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  * { -webkit-tap-highlight-color: transparent; }
+  :focus:not(:focus-visible) { outline: none; }
+  a, svg, img { -webkit-user-drag: none; }
+
   /* ---------- glow (WebGL) ---------- */
   #glow { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
 
@@ -89,8 +95,15 @@
   .live .links a { opacity: .9; }
 
   /* ---------- stream (solo cuando ya empezó) ---------- */
+  .elapsed {
+    display: none; font-family: 'GTA Art Deco', sans-serif; font-weight: 500; font-variant-numeric: tabular-nums;
+    font-size: clamp(16px, 1.4vw, 22px); letter-spacing: .08em; opacity: .85;
+    margin-bottom: calc(-1 * clamp(8px, 2vh, 22px));          /* más pegado al player */
+    text-shadow: 0 0 .04em #fff, 0 0 .3em rgba(255,255,255,.45), 0 0 .9em rgba(255,150,220,.3);
+  }
+  .live .elapsed { display: block; animation: rise 1.4s ease both; }
   .player {
-    display: none; width: min(880px, 100%, calc((100vh - 260px) * 16 / 9)); aspect-ratio: 16 / 9;
+    display: none; width: min(880px, 100%, calc((100vh - 300px) * 16 / 9)); aspect-ratio: 16 / 9;
     border-radius: 14px; overflow: hidden; background: #000;
     border: 1px solid rgba(255,255,255,.12);
     box-shadow: 0 0 40px rgba(255,90,180,.18), 0 0 120px rgba(150,60,255,.15);
@@ -106,7 +119,7 @@
     filter: drop-shadow(0 0 4px rgba(255,255,255,.3));
     transition: opacity .5s, filter .5s; -webkit-tap-highlight-color: transparent;
   }
-  .mark svg { display: block; height: 22px; width: auto; overflow: visible; }
+  .mark svg { display: block; height: 24px; width: auto; overflow: visible; }
   .mark path { fill: currentColor; }
   .mark:hover, .mark.on, .mark:focus-visible {
     opacity: 1; outline: none;
@@ -136,6 +149,7 @@
       <div class="unit"><span class="num" id="s">00</span><small>SEG</small></div>
     </div>
     <p class="date">18 NOV · 8:00 PM</p>
+    <div class="elapsed" id="elapsed" aria-label="Tiempo en vivo">00:00:00</div>
     <div class="player" id="player"></div>
     <nav class="links" aria-label="Plataformas">
       <a id="l-twitch" aria-label="Twitch" target="_blank" rel="noopener">
@@ -279,14 +293,14 @@
     const lerp = (a, b, t) => a + (b - a) * t;
     const along = (a, b, n) => Array.from({ length: n }, (_, i) => [lerp(a[0], b[0], (i + 1) / (n + 1)), lerp(a[1], b[1], (i + 1) / (n + 1))]);
 
-    const V    = [[0, 0], [3.6, 0], [5.5, 6.8], [7.4, 0], [11, 0], [7.2, 11], [3.8, 11]];
+    const V    = [[0, 0], [4.3, 0], [5.6, 4.2], [6.9, 0], [11.2, 0], [5.65, 11], [5.55, 11]];   // punta abajo
     const STEM = [[0, 0], [.75, 0], [1.5, 0], [2.25, 0], [3, 0], [3, 11], [0, 11]];
-    const I    = [[12, 0], [15.6, 0], ...along([15.6, 0], [15.6, 11], 12), [15.6, 11], [12, 11], ...along([12, 11], [12, 0], 12)];
+    const I    = [[12.1, 0], [16.4, 0], ...along([16.4, 0], [16.4, 11], 12), [16.4, 11], [12.1, 11], ...along([12.1, 11], [12.1, 0], 12)];
     const ARM  = [[6, 0], [9, 0], [9, 3], [8, 3], [8, 4], [7, 4], [7, 5], [6, 5], [6, 6], [7, 6], [7, 7], [8, 7], [8, 8], [9, 8],
                   [9, 11], [6, 11], [6, 10], [5, 10], [5, 9], [4, 9], [4, 8], [2.6, 8], [2.6, 3], [4, 3], [4, 2], [5, 2], [5, 1], [6, 1]];
 
     // centrar ambos estados en (0,0); la K lleva su inclinación
-    const vi = p => [p[0] - 7.8, p[1] - 5.5];
+    const vi = p => [p[0] - 8.2, p[1] - 5.5];
     const k  = p => [p[0] - 4.5 - SKEW * (p[1] - 5.5), p[1] - 5.5];
     const pairs = [[V.map(vi), STEM.map(k)], [I.map(vi), ARM.map(k)]];
     const paths = [document.getElementById('mark-a'), document.getElementById('mark-b')];
@@ -332,7 +346,14 @@
   const forceLive = new URLSearchParams(location.search).has('live');   // ?live para previsualizar
   const $ = id => document.getElementById(id);
   function tick() {
-    if (forceLive || Date.now() >= T) { goLive(); return; }
+    if (forceLive || Date.now() >= T) {
+      goLive();
+      // tiempo que lleva el stream; las horas siguen subiendo después de 24
+      let e = Math.max(0, Math.floor((Date.now() - T) / 1000));
+      const eh = Math.floor(e / 3600); e %= 3600;
+      $('elapsed').textContent = [eh, Math.floor(e / 60), e % 60].map(v => String(v).padStart(2, '0')).join(':');
+      return;
+    }
     let s = Math.max(0, Math.floor((T - Date.now()) / 1000));
     const d = Math.floor(s / 86400); s %= 86400;
     const h = Math.floor(s / 3600);  s %= 3600;
