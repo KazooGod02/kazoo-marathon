@@ -35,6 +35,7 @@
   * { -webkit-tap-highlight-color: transparent; }
   :focus:not(:focus-visible) { outline: none; }
   a, svg, img { -webkit-user-drag: none; }
+  .idle, .idle * { cursor: none !important; }   /* el cursor se esconde si no se mueve */
 
   /* ---------- glow (WebGL) ---------- */
   #glow { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
@@ -374,6 +375,16 @@
   }
 </script>
 <script>
+  // ---------- cursor: se oculta tras 3 s quieto ----------
+  (() => {
+    const root = document.documentElement;
+    let timer;
+    const wake = () => { root.classList.remove('idle'); clearTimeout(timer); timer = setTimeout(() => root.classList.add('idle'), 3000); };
+    addEventListener('pointermove', e => { if (e.pointerType === 'mouse') wake(); });
+    addEventListener('pointerdown', wake);
+    wake();
+  })();
+
   // ---------- intro ----------
   (() => {
     const root = document.documentElement;
