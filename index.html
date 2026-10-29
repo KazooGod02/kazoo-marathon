@@ -324,16 +324,31 @@
     const root = document.documentElement;
     if (root.classList.contains('live')) return;
     root.classList.add('live');
-    const parents = [...new Set(['kazoogod02.github.io', location.hostname || 'localhost'])]
-      .map(p => '&parent=' + p).join('');
-    const f = document.createElement('iframe');
+    const parents = [...new Set(['kazoogod02.github.io', location.hostname || 'localhost'])];
     // ?canal=otro para previsualizar con un stream que esté en vivo ahorita
     const channel = new URLSearchParams(location.search).get('canal') || USER;
-    f.src = `https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&muted=true&autoplay=true${parents}`;
-    f.title = 'Stream en vivo';
-    f.allowFullscreen = true;
-    document.getElementById('player').appendChild(f);
+    // API de embed de Twitch: avisa cuando el preview de verdad está reproduciendo, para callar la música
+    const js = document.createElement('script');
+    js.src = 'https://player.twitch.tv/js/embed/v1.js';
+    js.onload = () => {
+      const p = new Twitch.Player('player', {
+        channel, parent: parents, muted: true, autoplay: true, width: '100%', height: '100%',
+      });
+      p.addEventListener(Twitch.Player.PLAYING, () => { streaming = true; music.pause(); });
+      p.addEventListener(Twitch.Player.OFFLINE, () => { streaming = false; playMusic(); });
+    };
+    document.head.appendChild(js);
   }
+
+  // ---------- música de espera ----------
+  // Suena al entrar y se calla cuando el player de Twitch está mostrando el stream.
+  const music = new Audio('pause.mp3');
+  music.loop = true;
+  let streaming = false;
+  const playMusic = () => { if (!streaming) music.play().catch(() => {}); };
+  playMusic();
+  // los navegadores bloquean el audio hasta que la persona interactúa: arranca al primer toque/tecla
+  for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, playMusic, { once: true });
 
   // ---------- VI → logo ----------
   // La V se cierra en el tallo de la K y la I se dobla en el brazo escalonado.
