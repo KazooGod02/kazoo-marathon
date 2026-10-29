@@ -35,7 +35,10 @@
   * { -webkit-tap-highlight-color: transparent; }
   :focus:not(:focus-visible) { outline: none; }
   a, svg, img { -webkit-user-drag: none; }
-  .idle, .idle * { cursor: none !important; }   /* el cursor se esconde si no se mueve */
+  /* el cursor se esconde si no se mueve. Una capa encima (en vez de solo cambiar el estilo) obliga a Chrome
+     a actualizar el cursor aunque el mouse esté quieto, también en F11 y encima del player de Twitch */
+  .idle, .idle * { cursor: none !important; }
+  .idle body::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; }
 
   /* ---------- glow (WebGL) ---------- */
   #glow { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
@@ -378,9 +381,13 @@
   // ---------- cursor: se oculta tras 3 s quieto ----------
   (() => {
     const root = document.documentElement;
-    let timer;
+    let timer, lx, ly;
     const wake = () => { root.classList.remove('idle'); clearTimeout(timer); timer = setTimeout(() => root.classList.add('idle'), 3000); };
-    addEventListener('pointermove', e => { if (e.pointerType === 'mouse') wake(); });
+    // Chrome manda un movimiento "falso" cuando aparece la capa; solo cuenta si el mouse de verdad cambió de lugar
+    addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse' || (e.screenX === lx && e.screenY === ly)) return;
+      lx = e.screenX; ly = e.screenY; wake();
+    });
     addEventListener('pointerdown', wake);
     wake();
   })();
