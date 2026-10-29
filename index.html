@@ -279,7 +279,9 @@
     const parents = [...new Set(['kazoogod02.github.io', location.hostname || 'localhost'])]
       .map(p => '&parent=' + p).join('');
     const f = document.createElement('iframe');
-    f.src = `https://player.twitch.tv/?channel=${USER}&muted=true&autoplay=true${parents}`;
+    // ?canal=otro para previsualizar con un stream que esté en vivo ahorita
+    const channel = new URLSearchParams(location.search).get('canal') || USER;
+    f.src = `https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&muted=true&autoplay=true${parents}`;
     f.title = 'Stream en vivo';
     f.allowFullscreen = true;
     document.getElementById('player').appendChild(f);
@@ -344,12 +346,13 @@
   // 18 nov 2026, 8:00 PM Culiacán (UTC-7) = 19 nov 03:00 UTC
   const T = Date.UTC(2026, 10, 19, 3, 0, 0);
   const forceLive = new URLSearchParams(location.search).has('live');   // ?live para previsualizar
+  const liveStart = forceLive && Date.now() < T ? Date.now() : T;       // en preview el tiempo corre desde que abres
   const $ = id => document.getElementById(id);
   function tick() {
     if (forceLive || Date.now() >= T) {
       goLive();
       // tiempo que lleva el stream; las horas siguen subiendo después de 24
-      let e = Math.max(0, Math.floor((Date.now() - T) / 1000));
+      let e = Math.max(0, Math.floor((Date.now() - liveStart) / 1000));
       const eh = Math.floor(e / 3600); e %= 3600;
       $('elapsed').textContent = [eh, Math.floor(e / 60), e % 60].map(v => String(v).padStart(2, '0')).join(':');
       return;
