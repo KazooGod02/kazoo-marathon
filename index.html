@@ -561,6 +561,9 @@
   // ---------- contador ----------
   // 18 nov 2026, 8:00 PM Culiacán (UTC-7) = 19 nov 03:00 UTC
   const T = Date.UTC(2026, 10, 19, 3, 0, 0);
+  // la fecha se muestra en la hora de quien visita (puede cambiar el día)
+  const at = new Date(T);
+  document.querySelector('.date').textContent = `${at.getDate()} ${at.toLocaleString('es', { month: 'short' }).replace('.', '').toUpperCase()} · ${at.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
   const forceLive = new URLSearchParams(location.search).has('live');   // ?live para previsualizar
   const liveStart = forceLive && Date.now() < T ? Date.now() : T;       // en preview el tiempo corre desde que abres
   const $ = id => document.getElementById(id);
