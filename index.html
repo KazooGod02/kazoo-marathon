@@ -31,7 +31,8 @@
 
   /* sin selección ni resaltado azul al tocar o hacer clic */
   html { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-  input { -webkit-user-select: text; user-select: text; }
+  input, textarea { -webkit-user-select: text; user-select: text; }
+  [hidden] { display: none !important; }   /* que ningún display: flex/grid le gane a hidden */
   * { -webkit-tap-highlight-color: transparent; }
   :focus:not(:focus-visible) { outline: none; }
   a, svg, img { -webkit-user-drag: none; }
@@ -285,6 +286,149 @@
   .edit button.ghost:hover { opacity: 1; box-shadow: none; }
   .edit button:disabled { opacity: .4; pointer-events: none; }
   .edit .err { font-size: 12px; color: #ff8fc4; min-height: 1em; margin: -6px 0; }
+  #edit-text { width: min(560px, calc(100% - 32px)); }
+  .edit textarea {
+    font: 300 14px/1.5 'Space Grotesk', sans-serif; color: #fff; letter-spacing: .01em; resize: vertical; outline: none;
+    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.14); border-radius: 8px; padding: 10px 12px;
+    -webkit-user-select: text; user-select: text; transition: border-color .3s;
+  }
+  .edit textarea:focus { border-color: #ffd6ea; }
+  .edit .hint { font-size: 11px; line-height: 1.5; opacity: .55; white-space: pre-line; margin-top: -8px; }
+
+  /* ---------- contenido de las pestañas ---------- */
+  .vods-open .pane.on .st { animation: rise .8s ease both; animation-delay: calc(.15s + var(--i, 0) * 80ms); }
+  .doc h3, .notes b, .credit b, .watch-item b {
+    display: block; font-size: 10px; font-weight: 400; letter-spacing: .4em; color: #ffd6ea; opacity: .8; margin-bottom: 14px;
+  }
+  .admin-edit {
+    display: block; margin: 36px auto 0; font: 400 10px 'Space Grotesk', sans-serif; letter-spacing: .3em; color: #fff;
+    background: none; border: 1px dashed rgba(255,255,255,.4); border-radius: 99px; padding: 10px 18px; cursor: pointer; opacity: .6; transition: opacity .3s;
+  }
+  .admin-edit:hover { opacity: 1; }
+  .pill {
+    font: 400 12px 'Space Grotesk', sans-serif; letter-spacing: .25em; color: #040205; background: #fff;
+    border: 0; border-radius: 99px; padding: 14px 26px; cursor: pointer; transition: box-shadow .3s, transform .3s;
+  }
+  .pill:hover, .pill:focus-visible { outline: none; transform: translateY(-1px); box-shadow: 0 0 18px rgba(255,255,255,.45), 0 0 40px rgba(255,140,210,.35); }
+
+  /* reglas: numeradas seguidas en todas las secciones */
+  .doc { max-width: 640px; margin: 0 auto; counter-reset: r; }
+  .doc section { margin-bottom: clamp(36px, 6vh, 56px); }
+  .doc h3 { text-align: center; margin-bottom: 20px; }
+  .doc ol { list-style: none; }
+  .doc li, .sanctions div { padding: 13px 0; border-top: 1px solid rgba(255,255,255,.07); font-weight: 300; font-size: 15px; line-height: 1.55; }
+  .doc li { counter-increment: r; display: grid; grid-template-columns: 38px 1fr; }
+  .doc li::before { content: counter(r, decimal-leading-zero); font-family: 'GTA Art Deco', sans-serif; font-size: 12px; opacity: .45; padding-top: .3em; }
+  .sanctions div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .sanctions span:last-child { font-family: 'GTA Art Deco', sans-serif; font-size: 13px; letter-spacing: .06em; text-align: right; white-space: nowrap; }
+  .sanctions .ban span:last-child { color: #ff8fc4; text-shadow: 0 0 .4em rgba(255,90,180,.7), 0 0 1.2em rgba(255,90,180,.4); }
+
+  /* timeline: hora · punto sobre la línea · momento (con su clip) */
+  .tl { list-style: none; max-width: 720px; margin: 0 auto; position: relative; }
+  .tl::before {
+    content: ''; position: absolute; left: 105px; top: 8px; bottom: 8px; width: 1px;
+    background: linear-gradient(#ff4fb0, #c03cff 75%, rgba(192,60,255,.15)); box-shadow: 0 0 8px rgba(255,80,180,.6);
+  }
+  .tl li { display: grid; grid-template-columns: 90px 30px 1fr; align-items: start; padding: 10px 0; }
+  .tl-t { font-family: 'GTA Art Deco', sans-serif; font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; opacity: .75; padding-top: 1px; }
+  .tl-dot {
+    justify-self: center; position: relative; z-index: 1; width: 9px; height: 9px; margin-top: 4px; border-radius: 50%;
+    background: #fff; box-shadow: 0 0 6px #fff, 0 0 16px rgba(255,140,210,.8);
+  }
+  .tl-card { display: flex; gap: 14px; align-items: flex-start; }
+  .tl-card img {
+    flex: none; width: 150px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,.12);
+    transition: transform .45s cubic-bezier(.2, .7, .2, 1), box-shadow .45s;
+  }
+  .tl-card p { font-weight: 300; font-size: 14px; line-height: 1.45; opacity: .85; transition: opacity .3s; }
+  .tl .has-clip, .tl [role=button] { cursor: pointer; }
+  .tl .has-clip:hover img, .tl [role=button]:hover img { transform: translateY(-2px); box-shadow: 0 0 24px rgba(255,90,180,.3); }
+  .tl .has-clip:hover p, .tl [role=button]:hover p { opacity: 1; }
+  .tl-now .tl-dot { background: #ff4fb0; animation: pulse 1.6s ease-in-out infinite; }
+  .tl-now .tl-t, .tl-now p { color: #ffd6ea; opacity: 1; }
+  .tl-now p, .tl-add p { font-size: 10px; letter-spacing: .4em; padding-top: 3px; }
+  .tl-now.ended .tl-dot { animation: none; background: #fff; }
+  @keyframes pulse { 50% { transform: scale(1.35); box-shadow: 0 0 4px #ff4fb0, 0 0 22px 6px rgba(255,79,176,.6); } }
+  .tl-add p { opacity: .5; }
+  .tl-add .tl-dot { background: none; border: 1px dashed rgba(255,255,255,.7); box-shadow: none; }
+  @media (max-width: 560px) {
+    .tl::before { left: 81px; }
+    .tl li { grid-template-columns: 66px 30px 1fr; }
+    .tl-t { font-size: 11px; }
+    .tl-card { flex-direction: column; gap: 8px; }
+    .tl-card img { width: 100%; max-width: 240px; }
+  }
+
+  /* cómo verlo */
+  .watch { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; max-width: 1000px; margin: 0 auto; }
+  @media (min-width: 1000px) { .watch { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 520px) { .watch { grid-template-columns: 1fr; } }
+  .watch-item {
+    display: flex; gap: 16px; align-items: center; padding: 18px 20px; border-radius: 12px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.03);
+    transition: border-color .4s, box-shadow .4s, transform .4s cubic-bezier(.2, .7, .2, 1);
+  }
+  .watch-item svg { flex: none; width: 26px; height: 26px; fill: #fff; filter: drop-shadow(0 0 6px rgba(255,255,255,.3)); }
+  .watch-item b { margin-bottom: 6px; }
+  .watch-item p { font-weight: 300; font-size: 13px; line-height: 1.4; opacity: .7; }
+  .watch-item:hover, .watch-item:focus-visible {
+    outline: none; transform: translateY(-2px); border-color: rgba(255,255,255,.28);
+    box-shadow: 0 0 30px rgba(255,90,180,.2), 0 0 80px rgba(150,60,255,.15);
+  }
+  .notes { max-width: 640px; margin: clamp(32px, 6vh, 56px) auto 0; display: grid; gap: 24px; text-align: center; }
+  .notes p { font-weight: 300; font-size: 14px; line-height: 1.55; opacity: .85; }
+  .notes b { margin-bottom: 8px; }
+
+  /* créditos, como al final de una película */
+  .credits { display: grid; gap: clamp(28px, 5vh, 44px); max-width: 560px; margin: 0 auto; text-align: center; }
+  .credit b { margin-bottom: 10px; }
+  .credit p { font-weight: 300; font-size: clamp(16px, 1.4vw, 20px); line-height: 1.5; }
+
+  /* wrapped */
+  .wrapped-cta { display: grid; justify-items: center; gap: 24px; margin-top: 6vh; text-align: center; }
+  .wrapped-cta svg, .story-k {
+    width: 64px; fill: #fff;
+    filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 18px rgba(255,255,255,.55)) drop-shadow(0 0 48px rgba(255,140,210,.45));
+  }
+  .wrapped-cta h3, .story-slide h2 {
+    font-family: 'GTA Art Deco', sans-serif; font-weight: 500; line-height: 1.15; font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 .03em #fff, 0 0 .14em rgba(255,255,255,.55), 0 0 .45em rgba(255,255,255,.2), 0 0 1em rgba(255,150,220,.18);
+  }
+  .wrapped-cta h3 { font-size: clamp(22px, 2.6vw, 40px); }
+
+  /* historias: pantalla vertical encima de todo */
+  .story {
+    position: fixed; inset: 0; z-index: 25; display: grid; place-items: center; touch-action: none;
+    background: rgba(4,2,5,.6); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); animation: fade .4s ease both;
+  }
+  @keyframes fade { from { opacity: 0; } }
+  .story-frame {
+    position: relative; overflow: hidden; width: min(100vw, calc(100vh * 9 / 16)); height: min(100vh, calc(100vw * 16 / 9));
+    background: radial-gradient(130% 75% at 0% 100%, var(--a, rgba(255,79,176,.55)), transparent 60%),
+                radial-gradient(130% 75% at 100% 0%, var(--b, rgba(123,44,255,.5)), transparent 60%), #0a0410;
+  }
+  @media (min-width: 600px) {
+    .story-frame {
+      height: min(92vh, 860px); width: calc(min(92vh, 860px) * 9 / 16); border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12); box-shadow: 0 0 60px rgba(255,90,180,.25), 0 0 160px rgba(150,60,255,.2);
+    }
+  }
+  .story-bars { position: absolute; top: 14px; left: 14px; right: 14px; z-index: 2; display: flex; gap: 4px; }
+  .story-bars span { flex: 1; height: 2px; border-radius: 2px; overflow: hidden; background: rgba(255,255,255,.25); }
+  .story-bars i { display: block; width: 0; height: 100%; background: #fff; box-shadow: 0 0 6px #fff; }
+  .story-x { position: absolute; top: 24px; right: 10px; z-index: 2; padding: 10px; background: none; border: 0; color: #fff; cursor: pointer; opacity: .7; }
+  .story-x:hover { opacity: 1; }
+  .story-x svg { display: block; width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; }
+  .story-slide {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; padding: 70px 28px; text-align: center; animation: rise .7s ease both;
+  }
+  .story-slide .label, .story-slide .by { font-size: 11px; letter-spacing: .4em; padding-left: .4em; color: #ffd6ea; }
+  .story-slide h2 { font-size: clamp(34px, 10vw, 60px); }
+  .s-intro h2, .s-outro h2 { font-size: clamp(24px, 7vw, 38px); }
+  .story-slide blockquote { font-weight: 300; font-size: clamp(22px, 6vw, 30px); line-height: 1.35; }
+  .story-slide img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,.15); box-shadow: 0 0 40px rgba(255,90,180,.3); }
+  .story-slide .title { font-weight: 300; font-size: 17px; line-height: 1.4; }
 
   @media (orientation: portrait) {
     .num, .sep { font-size: 11.5vw; }
@@ -332,17 +476,74 @@
   <section class="vods" id="vods" aria-label="Kazoo Marathon">
     <nav class="tabs" id="tabs" aria-label="Secciones"><div class="drum" id="drum"></div></nav>
     <!-- cada .pane es una pestaña; data-label es su nombre en la rueda, en este orden -->
-    <div class="pane" data-label="REGLAS"><p class="soon">PRONTO</p></div>
-    <div class="pane" data-label="TIMELINE · DÍA 1"><p class="soon">PRONTO</p></div>
+    <div class="pane" data-label="REGLAS">
+      <div class="doc">
+        <section class="st" style="--i:0">
+          <h3>SIN SPOILERS</h3>
+          <ol>
+            <li>Nada de la historia, misiones, personajes, finales ni giros que Kazoo no haya visto en el stream.</li>
+            <li>Tampoco pistas indirectas («espérate a lo que viene», «ya verás quién…»), nombres de misiones ni capturas o clips de más adelante.</li>
+            <li>No le digas a Kazoo a dónde ir o qué hacer, a menos que lo pida.</li>
+            <li>Si ya jugaste más adelante, disfrútalo en silencio: te tocó verlo primero.</li>
+          </ol>
+        </section>
+        <section class="st" style="--i:1">
+          <h3>EN EL CHAT</h3>
+          <ol>
+            <li>Respeto a todos: nada de odio, acoso ni discriminación.</li>
+            <li>Sin spam, cadenas ni links que no apruebe un mod.</li>
+            <li>Lo que digan los mods va.</li>
+          </ol>
+        </section>
+        <section class="st" style="--i:2">
+          <h3>SANCIONES</h3>
+          <div class="sanctions">
+            <div><span>Primer spoiler o pista</span><span>TIMEOUT 10 MIN</span></div>
+            <div><span>Segundo spoiler</span><span>TIMEOUT 24 H</span></div>
+            <div class="ban"><span>Spoiler a propósito o grande</span><span>BAN</span></div>
+            <div class="ban"><span>Odio, acoso o spam</span><span>BAN SIN AVISO</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div class="pane" data-label="TIMELINE · DÍA 1">
+      <ol class="tl" id="tl"></ol>
+      <p class="soon" id="tl-empty" hidden>EMPIEZA CON EL STREAM</p>
+    </div>
     <div class="pane" data-label="VODS Y CLIPS" data-start>
       <div class="grid" id="grid"></div>
       <p class="soon" id="vods-empty" hidden>PRONTO</p>
     </div>
-    <div class="pane" data-label="CÓMO VERLO"><p class="soon">PRONTO</p></div>
-    <div class="pane" data-label="CRÉDITOS"><p class="soon">PRONTO</p></div>
-    <!-- el Wrapped sale al final del maratón; mientras tanto solo con ?wrapped -->
-    <div class="pane" data-label="WRAPPED" data-when="wrapped"><p class="soon">PRONTO</p></div>
+    <div class="pane" data-label="CÓMO VERLO">
+      <div class="watch" id="watch"></div>
+      <div class="notes st" style="--i:4">
+        <p><b>CUÁNDO</b><span id="watch-when"></span> · en tu hora</p>
+        <p><b>AQUÍ MISMO</b>Cuando empiece, el stream aparece en la portada de esta página. Los VODs y el timeline se quedan en estas pestañas.</p>
+      </div>
+    </div>
+    <div class="pane" data-label="CRÉDITOS">
+      <div class="credits" id="credits"></div>
+      <p class="soon" id="credits-empty" hidden>PRONTO</p>
+      <button class="admin-edit" id="credits-edit" hidden>EDITAR CRÉDITOS</button>
+    </div>
+    <!-- el Wrapped aparece solo cuando ya tiene historias (o con ?wrapped / ?admin) -->
+    <div class="pane" data-label="WRAPPED" id="wrapped-pane">
+      <div class="wrapped-cta st">
+        <svg viewBox="-2.3 -.5 11.8 12" aria-hidden="true"><path transform="skewX(-9.28)" d="M0 0H3V3H4V2H5V1H6V0H9V3H8V4H7V5H6V6H7V7H8V8H9V11H6V10H5V9H4V8H3V11H0Z"/></svg>
+        <h3>KAZOO MARATHON<br>WRAPPED</h3>
+        <button class="pill" id="wrapped-open">VER WRAPPED</button>
+        <button class="admin-edit" id="wrapped-edit" hidden>EDITAR HISTORIAS</button>
+      </div>
+    </div>
   </section>
+
+  <div class="story" id="story" hidden>
+    <div class="story-frame" id="story-frame">
+      <div class="story-bars" id="story-bars"></div>
+      <button class="story-x" id="story-x" aria-label="Cerrar"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 2l14 14M16 2 2 16"/></svg></button>
+      <div id="story-stage"></div>
+    </div>
+  </div>
   <button class="arrow prev" id="prev" aria-label="Pestaña anterior"><svg viewBox="0 0 16 34" aria-hidden="true"><path d="M15 1 1 17l14 16"/></svg></button>
   <button class="arrow next" id="next" aria-label="Pestaña siguiente"><svg viewBox="0 0 16 34" aria-hidden="true"><path d="m1 1 14 16L1 33"/></svg></button>
 
@@ -353,14 +554,29 @@
         <input type="file" accept="image/*" id="f-file" hidden>
         <span>SUBIR MINIATURA</span>
       </label>
-      <label>ENLACE<input id="f-url" type="url" required placeholder="https://"></label>
+      <label id="f-time-row">MOMENTO DEL STREAM<input id="f-time" placeholder="00:00:00" inputmode="numeric"></label>
+      <label>ENLACE<input id="f-url" type="url" placeholder="https://"></label>
       <label>TÍTULO<input id="f-title" required maxlength="120"></label>
-      <label id="f-token-row">TOKEN DE GITHUB<input id="f-token" type="password" autocomplete="off"></label>
-      <p class="err" id="f-err"></p>
+      <label class="tok">TOKEN DE GITHUB<input type="password" autocomplete="off"></label>
+      <p class="err"></p>
       <div class="row">
         <button type="button" class="ghost" id="f-del">QUITAR</button><span></span>
-        <button type="button" class="ghost" id="f-cancel">CANCELAR</button>
-        <button id="f-save">GUARDAR</button>
+        <button type="button" class="ghost" data-close>CANCELAR</button>
+        <button>GUARDAR</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="edit" id="edit-text">
+    <form>
+      <label><span id="t-head"></span><textarea id="t-body" rows="10" spellcheck="false"></textarea></label>
+      <p class="hint" id="t-hint"></p>
+      <label class="tok">TOKEN DE GITHUB<input type="password" autocomplete="off"></label>
+      <p class="err"></p>
+      <div class="row">
+        <span></span>
+        <button type="button" class="ghost" data-close>CANCELAR</button>
+        <button>GUARDAR</button>
       </div>
     </form>
   </dialog>
@@ -635,12 +851,122 @@
   }
   tick(); setInterval(tick, 1000);
 
+  // ---------- datos editables ----------
+  // Cada sección guarda su JSON en el repo. Todos leen el archivo publicado; con ?admin se edita desde la página y se guarda en GitHub con tu token.
+  const DB = (() => {
+    const API = 'https://api.github.com/repos/KazooGod02/kazoo-marathon/contents/';
+    const admin = new URLSearchParams(location.search).has('admin');
+    const ls = { get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+                 set: (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} } };
+    let token = ls.get('gh-token');
+    const sha = {}, local = {};                                         // local: miniaturas recién subidas, antes de que Pages las publique
+    const b64 = s => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+    const unb64 = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g, '')), c => c.charCodeAt(0)));
+    const gh = (path, body) => fetch(API + path, {
+      method: body ? 'PUT' : 'GET', cache: 'no-store',
+      headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' },
+      body: body && JSON.stringify(body),
+    }).then(async r => {
+      if (r.status === 401) { ls.set('gh-token', token = null); throw new Error('Token inválido, ponlo de nuevo'); }
+      if (!r.ok) throw new Error('GitHub respondió ' + r.status);
+      return r.json();
+    });
+    return {
+      admin, local,
+      get token() { return token; },
+      setToken(t) { ls.set('gh-token', token = t); },
+      // en admin se lee de la API (sin esperar a que Pages publique); el resto lee el archivo publicado
+      async load(path, fallback) {
+        if (admin && token) try { const r = await gh(path); sha[path] = r.sha; return JSON.parse(unb64(r.content)); } catch {}
+        try { return await (await fetch(path + '?' + Date.now(), { cache: 'no-store' })).json(); } catch { return fallback; }
+      },
+      async save(path, data, msg) {
+        if (!sha[path]) sha[path] = await gh(path).then(r => r.sha, () => undefined);   // sin sha = archivo nuevo
+        sha[path] = (await gh(path, { message: msg, content: b64(JSON.stringify(data, null, 2) + '\n'), sha: sha[path] })).content.sha;
+      },
+      async upload(dataUrl, msg) {
+        const path = `vods/${Date.now()}.jpg`;
+        await gh(path, { message: msg, content: dataUrl.split(',')[1] });
+        local[path] = dataUrl;
+        return path;
+      },
+    };
+  })();
+
+  const ytId = u => (String(u).match(/(?:youtu\.be\/|[?&]v=|\/(?:live|shorts|embed)\/)([\w-]{11})/) || [])[1];
+  const thumbOf = (v, file) => file || DB.local[v.thumb] || v.thumb || (ytId(v.url) ? `https://i.ytimg.com/vi/${ytId(v.url)}/hqdefault.jpg` : '');
+  const hms = s => [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(v => String(v).padStart(2, '0')).join(':');
+  const secs = str => String(str).split(':').reduce((a, v) => a * 60 + (parseInt(v) || 0), 0);
+  const wrappedData = DB.load('wrapped.json', []);
+
+  // ---------- editores (solo ?admin) ----------
+  // Piden el token la primera vez y llaman onSave; si algo falla, el error se queda en el diálogo.
+  function dialogSave(dlg, onSave) {
+    const err = dlg.querySelector('.err'), tok = dlg.querySelector('.tok'), tokIn = tok.querySelector('input');
+    const btn = dlg.querySelector('button:not([type])');
+    tok.hidden = !!DB.token; tokIn.required = !DB.token; tokIn.value = ''; err.textContent = '';
+    dlg.querySelectorAll('[data-close]').forEach(b => b.onclick = () => dlg.close());
+    dlg.querySelector('form').onsubmit = async e => {
+      e.preventDefault();
+      if (!DB.token) DB.setToken(tokIn.value.trim());
+      btn.disabled = true; err.textContent = 'Guardando…';
+      try { await onSave(); dlg.close(); }
+      catch (e) { err.textContent = e.message; if (!DB.token) { tok.hidden = false; tokIn.required = true; } }
+      btn.disabled = false;
+    };
+    dlg.showModal();
+  }
+  // las miniaturas se achican a 1280px en jpg para que la página cargue rápido
+  const shrink = f => new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'), s = Math.min(1, 1280 / img.width);
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(img.src); res(c.toDataURL('image/jpeg', .85));
+    };
+    img.onerror = () => rej(new Error('No se pudo leer la imagen'));
+    img.src = URL.createObjectURL(f);
+  });
+  // VODs y momentos del timeline: { url, title, thumb, t }
+  function editItem(item, { time = false, needUrl = true, onSave, onDelete }) {
+    const dlg = $('edit'), pick = $('pick');
+    let file = null;
+    const preview = () => {
+      const src = thumbOf({ url: $('f-url').value, thumb: item.thumb }, file);
+      pick.style.backgroundImage = src ? `url("${src}")` : '';
+      pick.classList.toggle('has', !!src);
+    };
+    $('f-url').value = item.url || ''; $('f-title').value = item.title || ''; $('f-file').value = '';
+    $('f-url').required = needUrl;
+    $('f-time-row').hidden = !time; $('f-time').value = time ? hms(item.t || 0) : '';
+    $('f-del').hidden = !onDelete;
+    $('f-del').onclick = () => { if (confirm(`¿Quitar "${item.title}"?`)) { dlg.close(); onDelete().catch(e => alert(e.message)); } };
+    $('f-file').onchange = async e => { if (e.target.files[0]) { file = await shrink(e.target.files[0]).catch(() => null); preview(); } };
+    $('f-url').oninput = preview;
+    preview();
+    dialogSave(dlg, async () => {
+      const url = $('f-url').value.trim(), title = $('f-title').value.trim();
+      if (url && !/^https?:\/\//i.test(url)) throw new Error('El enlace debe empezar con https://');
+      if (needUrl && !file && !item.thumb && !ytId(url)) throw new Error('Sube una miniatura (solo YouTube se saca sola)');
+      const v = { ...item, url, title };
+      if (time) v.t = secs($('f-time').value);
+      if (file) v.thumb = await DB.upload(file, 'Miniatura: ' + title);
+      await onSave(v);
+    });
+  }
+  // créditos y wrapped se editan como texto
+  function editText(head, hint, value, onSave) {
+    $('t-head').textContent = head; $('t-hint').textContent = hint; $('t-body').value = value;
+    dialogSave($('edit-text'), () => onSave($('t-body').value));
+  }
+
   // ---------- pestañas ----------
   // pos es continuo (0 = primera pestaña); cada nombre se coloca en el cilindro según su distancia a pos y da la vuelta en loop
-  (() => {
-    const params = new URLSearchParams(location.search);
-    const panes = [...document.querySelectorAll('.pane')].filter(p => !p.dataset.when || params.has(p.dataset.when));
-    document.querySelectorAll('.pane').forEach(p => { if (!panes.includes(p)) p.remove(); });
+  wrappedData.then(slides => {
+    // el Wrapped solo aparece cuando ya tiene historias
+    if (!slides.length && !DB.admin && !new URLSearchParams(location.search).has('wrapped')) $('wrapped-pane').remove();
+    const panes = [...document.querySelectorAll('.pane')];
     const N = panes.length, STEP = 32, wrap = $('tabs');
     const mod = (a, n) => ((a % n) + n) % n;
     const near = d => mod(d + N / 2, N) - N / 2;                 // distancia más corta dando la vuelta
@@ -710,41 +1036,17 @@
     });
     addEventListener('resize', draw);
     draw();
-  })();
+  });
 
   // ---------- VODs y clips ----------
-  // La lista vive en vods.json en el repo. Todos la leen; con ?admin la editas y se guarda directo en GitHub con tu token.
   (() => {
-    const API = 'https://api.github.com/repos/KazooGod02/kazoo-marathon/contents/';
-    const admin = new URLSearchParams(location.search).has('admin');
-    const store = { get: k => { try { return localStorage.getItem(k); } catch { return null; } },
-                    set: (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} } };
-    let vods = [], sha, token = store.get('gh-token');
-    const local = {};                                                   // miniaturas recién subidas, antes de que Pages las publique
-
-    const ytId = u => (String(u).match(/(?:youtu\.be\/|[?&]v=|\/(?:live|shorts|embed)\/)([\w-]{11})/) || [])[1];
-    const thumbOf = (v, file) => file || local[v.thumb] || v.thumb || (ytId(v.url) ? `https://i.ytimg.com/vi/${ytId(v.url)}/hqdefault.jpg` : '');
-    const b64 = s => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
-    const unb64 = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g, '')), c => c.charCodeAt(0)));
-
-    const gh = (path, body) => fetch(API + path, {
-      method: body ? 'PUT' : 'GET', cache: 'no-store',
-      headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' },
-      body: body && JSON.stringify(body),
-    }).then(async r => {
-      if (r.status === 401) { store.set('gh-token', token = null); throw new Error('Token inválido, ponlo de nuevo'); }
-      if (!r.ok) throw new Error('GitHub respondió ' + r.status);
-      return r.json();
-    });
-    async function save(msg) {
-      render();
-      const r = await gh('vods.json', { message: msg, content: b64(JSON.stringify(vods, null, 2) + '\n'), sha });
-      sha = r.content.sha;
-    }
-
-    // ---- galería ----
     const grid = $('grid');
-    let from = -1;
+    let vods = [], from = -1;
+    const save = msg => { render(); return DB.save('vods.json', vods, msg); };
+    const edit = i => editItem(vods[i] || {}, {
+      onSave: v => { i >= 0 ? (vods[i] = v) : vods.push(v); return save((i >= 0 ? 'Editar' : 'Añadir') + ' VOD: ' + v.title); },
+      onDelete: i >= 0 && (() => { vods.splice(i, 1); return save('Quitar VOD'); }),
+    });
     function card(i, v) {
       const a = document.createElement('a');
       a.className = 'card'; a.style.setProperty('--i', i);
@@ -752,10 +1054,10 @@
       const src = thumbOf(v);
       if (src) { const img = new Image(); img.src = src; img.alt = ''; img.loading = 'lazy'; img.draggable = false; a.firstChild.append(img); }
       a.lastChild.textContent = v.title;
-      if (!admin) { clickable(a, openTab(v.url)); return a; }
+      if (!DB.admin) { clickable(a, openTab(v.url)); return a; }
       // admin: clic = editar, arrastrar = reordenar
       a.draggable = true;
-      clickable(a, () => open(i), 'button');
+      clickable(a, () => edit(i), 'button');
       a.ondragstart = e => { from = i; e.dataTransfer.setData('text/plain', ''); a.classList.add('dragging'); };
       a.ondragend = () => a.classList.remove('dragging');
       a.ondragover = e => { e.preventDefault(); a.classList.add('over'); };
@@ -764,92 +1066,219 @@
         e.preventDefault(); a.classList.remove('over');
         if (from < 0 || from === i) return;
         vods.splice(i, 0, vods.splice(from, 1)[0]); from = -1;
-        save('Reordenar VODs').catch(fail);
+        save('Reordenar VODs').catch(e => alert(e.message));
       };
       return a;
     }
     function render() {
       grid.replaceChildren(...vods.map((v, i) => card(i, v)));
-      if (admin) {
+      if (DB.admin) {
         const add = document.createElement('a');
         add.className = 'card add'; add.style.setProperty('--i', vods.length);
         add.setAttribute('aria-label', 'Añadir VOD o clip');
         add.innerHTML = '<div class="thumb"><svg class="dash" aria-hidden="true"><rect width="100%" height="100%" rx="10"/></svg>'
           + '<svg class="plus" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/></svg></div><p>&nbsp;</p>';
-        clickable(add, () => open(-1), 'button');
+        clickable(add, () => edit(-1), 'button');
         grid.append(add);
       }
-      $('vods-empty').hidden = admin || vods.length > 0;
+      $('vods-empty').hidden = DB.admin || vods.length > 0;
     }
+    DB.load('vods.json', []).then(d => { vods = d; render(); });
+  })();
 
-    // ---- editor ----
-    const dlg = $('edit'), form = dlg.querySelector('form'), pick = $('pick'), err = $('f-err');
-    let editing = -1, file = null;
-    const fail = e => { err.textContent = e.message; if (!dlg.open) alert(e.message); };
-    function preview() {
-      const src = thumbOf({ url: $('f-url').value, thumb: editing >= 0 ? vods[editing].thumb : '' }, file);
-      pick.style.backgroundImage = src ? `url("${src}")` : '';
-      pick.classList.toggle('has', !!src);
-    }
-    function open(i) {
-      editing = i; file = null; err.textContent = '';
-      const v = vods[i] || { url: '', title: '' };
-      $('f-url').value = v.url; $('f-title').value = v.title; $('f-file').value = '';
-      $('f-del').hidden = i < 0;
-      $('f-token-row').hidden = !!token;
-      $('f-token').required = !token;
-      preview(); dlg.showModal();
-    }
-    // las miniaturas se achican a 1280px en jpg para que la página cargue rápido
-    const shrink = f => new Promise((res, rej) => {
-      const img = new Image();
-      img.onload = () => {
-        const c = document.createElement('canvas'), s = Math.min(1, 1280 / img.width);
-        c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        URL.revokeObjectURL(img.src); res(c.toDataURL('image/jpeg', .85));
-      };
-      img.onerror = () => rej(new Error('No se pudo leer la imagen'));
-      img.src = URL.createObjectURL(f);
+  // ---------- timeline del día 1 ----------
+  // Momentos marcados con la hora del stream; al final va el "ahora", que avanza con el tiempo en vivo y se congela al acabar.
+  (() => {
+    const list = $('tl'), root = document.documentElement;
+    let items = [];
+    const save = msg => { render(); return DB.save('timeline.json', items, msg); };
+    const edit = i => editItem(items[i] || { t: secs($('elapsed').textContent) }, {
+      time: true, needUrl: false,
+      onSave: v => {
+        i >= 0 ? (items[i] = v) : items.push(v);
+        items.sort((a, b) => a.t - b.t);
+        return save((i >= 0 ? 'Editar' : 'Marcar') + ' momento: ' + v.title);
+      },
+      onDelete: i >= 0 && (() => { items.splice(i, 1); return save('Quitar momento'); }),
     });
-    $('f-file').onchange = async e => { if (e.target.files[0]) { file = await shrink(e.target.files[0]).catch(fail); preview(); } };
-    $('f-url').oninput = preview;
-    $('f-cancel').onclick = () => dlg.close();
-    $('f-del').onclick = () => {
-      if (!confirm(`¿Quitar "${vods[editing].title}"?`)) return;
-      vods.splice(editing, 1); dlg.close();
-      save('Quitar VOD').catch(fail);
-    };
-    form.onsubmit = async e => {
-      e.preventDefault();
-      const url = $('f-url').value.trim(), title = $('f-title').value.trim();
-      if (!/^https?:\/\//i.test(url)) return err.textContent = 'El enlace debe empezar con https://';
-      if (!token) store.set('gh-token', token = $('f-token').value.trim());
-      const v = { ...(vods[editing] || {}), url, title };
-      if (!file && !v.thumb && !ytId(url)) return err.textContent = 'Sube una miniatura (solo YouTube se saca sola)';
-      $('f-save').disabled = true; err.textContent = 'Guardando…';
-      try {
-        if (!sha) sha = (await gh('vods.json')).sha;
-        if (file) {
-          const path = `vods/${Date.now()}.jpg`;
-          await gh(path, { message: 'Miniatura: ' + title, content: file.split(',')[1] });
-          v.thumb = path; local[path] = file;
-        }
-        editing >= 0 ? (vods[editing] = v) : vods.push(v);
-        await save((editing >= 0 ? 'Editar' : 'Añadir') + ' VOD: ' + title);
-        dlg.close();
-      } catch (e) { fail(e); if (!token) { $('f-token-row').hidden = false; $('f-token').required = true; } }
-      $('f-save').disabled = false;
-    };
-
-    // en admin se lee de la API (sin esperar a que Pages publique); el resto lee el archivo publicado
-    (async () => {
-      try { if (!admin || !token) throw 0; const r = await gh('vods.json'); sha = r.sha; vods = JSON.parse(unb64(r.content)); }
-      catch {
-        try { vods = await (await fetch('vods.json?' + Date.now(), { cache: 'no-store' })).json(); } catch { vods = []; }
+    function row(cls, i) {
+      const li = document.createElement('li');
+      li.className = cls + ' st'; li.style.setProperty('--i', i);
+      li.innerHTML = '<span class="tl-t"></span><span class="tl-dot"></span><div class="tl-card"><p></p></div>';
+      return li;
+    }
+    function render() {
+      const rows = items.map((v, i) => {
+        const li = row('tl-item', i), card = li.lastChild, src = thumbOf(v);
+        li.firstChild.textContent = hms(v.t);
+        card.firstChild.textContent = v.title;
+        if (src) { const img = new Image(); img.src = src; img.alt = ''; img.loading = 'lazy'; card.prepend(img); }
+        if (DB.admin) clickable(li, () => edit(i), 'button');
+        else if (v.url) { li.classList.add('has-clip'); clickable(li, openTab(v.url)); }
+        return li;
+      });
+      rows.push(row('tl-now', items.length));
+      if (DB.admin) {
+        const add = row('tl-add', items.length + 1);
+        add.querySelector('p').textContent = '+ MARCAR MOMENTO';
+        clickable(add, () => edit(-1), 'button');
+        rows.push(add);
       }
-      render();
-    })();
+      list.replaceChildren(...rows);
+      update();
+    }
+    // el "ahora" copia el tiempo en vivo de la portada, que ya se congela solo al acabar
+    function update() {
+      const now = list.querySelector('.tl-now');
+      if (!now) return;
+      const live = root.classList.contains('live'), ended = root.classList.contains('ended');
+      now.hidden = !live;
+      now.firstChild.textContent = $('elapsed').textContent;
+      now.querySelector('p').textContent = ended ? 'FIN DEL DÍA 1' : 'EN VIVO';
+      now.classList.toggle('ended', ended);
+      $('tl-empty').hidden = live || items.length > 0 || DB.admin;
+    }
+    setInterval(update, 1000);
+    DB.load('timeline.json', []).then(d => { items = d.sort((a, b) => a.t - b.t); render(); });
+  })();
+
+  // ---------- cómo verlo ----------
+  (() => {
+    const WHAT = {
+      twitch: 'Señal principal, con chat. Es la que sale en esta página.',
+      kick: 'En vivo al mismo tiempo.',
+      youtube: 'En vivo al mismo tiempo.',
+      tiktok: 'En vivo al mismo tiempo.',
+    };
+    $('watch').replaceChildren(...Object.entries(WHAT).map(([k, what], i) => {
+      const src = $('l-' + k), d = document.createElement('div');
+      d.className = 'watch-item st'; d.style.setProperty('--i', i);
+      d.innerHTML = src.innerHTML + '<div><b></b><p></p></div>';
+      d.querySelector('b').textContent = src.getAttribute('aria-label').toUpperCase();
+      d.querySelector('p').textContent = what;
+      clickable(d, openTab(LINKS[k]));
+      return d;
+    }));
+    $('watch-when').textContent = document.querySelector('.date').textContent;
+  })();
+
+  // ---------- créditos ----------
+  // credits.json: [{ role, names: [] }]; en admin se edita como texto, una línea por rol: "MODS: nombre, nombre"
+  (() => {
+    let credits = [];
+    const toText = () => credits.map(c => `${c.role}: ${c.names.join(', ')}`).join('\n');
+    const parse = s => s.split('\n').map(l => l.split(':')).filter(([r, ...n]) => r.trim() && n.length)
+      .map(([r, ...n]) => ({ role: r.trim().toUpperCase(), names: n.join(':').split(',').map(x => x.trim()).filter(Boolean) }));
+    function render() {
+      $('credits').replaceChildren(...credits.map((c, i) => {
+        const d = document.createElement('div');
+        d.className = 'credit st'; d.style.setProperty('--i', i);
+        d.append(Object.assign(document.createElement('b'), { textContent: c.role }));
+        c.names.forEach(n => d.append(Object.assign(document.createElement('p'), { textContent: n })));
+        return d;
+      }));
+      $('credits-empty').hidden = credits.length > 0;
+      $('credits-edit').hidden = !DB.admin;
+    }
+    $('credits-edit').onclick = () => editText('CRÉDITOS', 'Una línea por rol →  MODS: nombre, nombre', toText(), async s => {
+      credits = parse(s); render();
+      await DB.save('credits.json', credits, 'Editar créditos');
+    });
+    DB.load('credits.json', []).then(d => { credits = d; render(); });
+  })();
+
+  // ---------- wrapped ----------
+  // Historias tipo Instagram: avanzan solas, tocar a la derecha/izquierda cambia, mantener presionado pausa.
+  // wrapped.json: [{ type: 'num', label, value } | { type: 'quote', text, by } | { type: 'clip', url, title }]; intro y final van solos.
+  (() => {
+    const DUR = 5200, story = $('story'), bars = $('story-bars'), stage = $('story-stage');
+    const PAL = [['rgba(255,79,176,.55)', 'rgba(123,44,255,.5)'], ['rgba(192,60,255,.55)', 'rgba(255,95,168,.45)'], ['rgba(255,60,140,.5)', 'rgba(90,28,201,.55)']];
+    const K = document.querySelector('.wrapped-cta svg').outerHTML.replace('<svg', '<svg class="story-k"');
+    let slides = [], idx = 0, elapsed = 0, last = 0, raf = 0, paused = false, downAt = 0;
+    const all = () => [{ type: 'intro' }, ...slides, { type: 'outro' }];
+    const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text != null ? { textContent: text } : {});
+    const btn = (text, fn) => { const b = el('button', 'pill', text); b.onclick = fn; return b; };
+
+    function show(i) {
+      const list = all();
+      if (i >= list.length) return close();
+      idx = Math.max(0, i); elapsed = 0;
+      const s = list[idx], box = el('div', 'story-slide s-' + s.type);
+      $('story-frame').style.setProperty('--a', PAL[idx % 3][0]);
+      $('story-frame').style.setProperty('--b', PAL[idx % 3][1]);
+      if (s.type === 'intro') { box.innerHTML = K; box.append(el('h2', '', 'KAZOO MARATHON'), el('p', 'label', 'WRAPPED')); }
+      if (s.type === 'num') { const h = el('h2', '', s.value); h.dataset.value = s.value; box.append(el('p', 'label', s.label), h); }
+      if (s.type === 'quote') box.append(el('blockquote', '', `“${s.text}”`), el('p', 'by', s.by || ''));
+      if (s.type === 'clip') {
+        const src = thumbOf(s);
+        if (src) box.append(Object.assign(new Image(), { src, alt: '' }));
+        box.append(el('p', 'title', s.title || ''), btn('VER CLIP', openTab(s.url)));
+      }
+      if (s.type === 'outro') {
+        box.innerHTML = K;
+        const url = location.origin + location.pathname + '#vods';
+        box.append(el('p', 'label', 'GRACIAS POR ESTAR'), el('h2', '', 'KAZOO MARATHON'),
+          btn('COMPARTIR', () => navigator.share ? navigator.share({ title: 'Kazoo Marathon · Wrapped', url }).catch(() => {}) : navigator.clipboard.writeText(url)));
+      }
+      stage.replaceChildren(box);
+    }
+    function frame(now) {
+      const dt = last ? now - last : 0; last = now;
+      if (!paused) elapsed += dt;
+      const p = Math.min(1, elapsed / DUR);
+      [...bars.children].forEach((b, j) => b.firstChild.style.width = (j < idx ? 100 : j > idx ? 0 : p * 100) + '%');
+      // los números cuentan desde cero
+      const big = stage.querySelector('[data-value]');
+      if (big) { const e = 1 - Math.pow(1 - Math.min(1, elapsed / 1500), 3); big.textContent = big.dataset.value.replace(/\d+/g, n => Math.round(n * e)); }
+      if (p >= 1) show(idx + 1);
+      if (!story.hidden) raf = requestAnimationFrame(frame);
+    }
+    function open() {
+      story.hidden = false;
+      bars.replaceChildren(...all().map(() => { const b = el('span'); b.append(el('i')); return b; }));
+      show(0); last = 0; paused = false;
+      cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+      music.currentTime = 0; music.play().catch(() => {});
+    }
+    function close() {
+      story.hidden = true; cancelAnimationFrame(raf);
+      if (streaming) music.pause();
+    }
+
+    story.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; downAt = e.timeStamp; paused = true; });
+    story.addEventListener('pointerup', e => {
+      if (!downAt) return;
+      const tap = e.timeStamp - downAt < 250;
+      downAt = 0; paused = false;
+      if (!tap) return;
+      const r = $('story-frame').getBoundingClientRect();
+      show(e.clientX < r.left + r.width / 3 ? idx - 1 : idx + 1);
+    });
+    $('story-x').onclick = close;
+    // en captura para que Esc/flechas no cierren también la galería ni cambien de pestaña
+    addEventListener('keydown', e => {
+      if (story.hidden) return;
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowRight') show(idx + 1);
+      else if (e.key === 'ArrowLeft') show(idx - 1);
+      else return;
+      e.stopImmediatePropagation();
+    }, true);
+
+    const toText = () => slides.map(s => s.type === 'num' ? `numero | ${s.label} | ${s.value}`
+      : s.type === 'quote' ? `frase | ${s.text} | ${s.by || ''}` : `clip | ${s.url} | ${s.title || ''}`).join('\n');
+    const parse = text => text.split('\n').map(l => l.split('|').map(x => x.trim())).filter(p => p[1]).map(([k, a, b = '']) => {
+      k = k.toLowerCase();
+      if (k.startsWith('num') || k.startsWith('núm')) return { type: 'num', label: a.toUpperCase(), value: b };
+      if (k.startsWith('fra')) return { type: 'quote', text: a, by: b };
+      if (k.startsWith('clip') && /^https?:\/\//i.test(a)) return { type: 'clip', url: a, title: b };
+    }).filter(Boolean);
+    $('wrapped-open').onclick = open;
+    $('wrapped-edit').hidden = !DB.admin;
+    $('wrapped-edit').onclick = () => editText('WRAPPED',
+      'Una historia por línea (la intro y el final van solos):\nnumero | TIEMPO EN VIVO | 47 h 12 min\nfrase | ya me voy a dormir | Kazoo, hora 30\nclip | https://youtu.be/… | El mejor momento',
+      toText(), async s => { slides = parse(s); await DB.save('wrapped.json', slides, 'Editar Wrapped'); });
+    wrappedData.then(d => { slides = d; });
   })();
 </script>
 </body>
