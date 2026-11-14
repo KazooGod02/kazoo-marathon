@@ -1,6 +1,35 @@
 [
   {
     "role": "STREAMER",
-    "names": ["KazooGod02"]
+    "names": [
+      "KazooGod02"
+    ]
+  },
+  {
+    "role": "CAMARA",
+    "names": [
+      "@de_renn2"
+    ]
+  },
+  {
+    "role": "PERSONAJES DE TRAILER",
+    "names": [
+      "@ardr_08",
+      "@luisev_17",
+      "@kazoogod02"
+    ]
+  },
+  {
+    "role": "GUION",
+    "names": [
+      "Kazoo",
+      "@de_renn2"
+    ]
+  },
+  {
+    "role": "EL PLAN (VIDEOJUEGO)",
+    "names": [
+      "Kazoo"
+    ]
   }
 ]
