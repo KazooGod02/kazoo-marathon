@@ -83,7 +83,7 @@
   /* ---------- plataformas ---------- */
   .links { display: flex; gap: clamp(14px, 2.2vw, 36px); margin-top: clamp(8px, 2vh, 24px); }
   .links a {
-    display: grid; place-items: center; width: 52px; height: 52px; color: #fff; opacity: .72;
+    display: grid; place-items: center; width: 52px; height: 52px; color: #fff; opacity: .72; cursor: pointer;
     transition: opacity .35s, transform .35s, filter .35s;
     filter: drop-shadow(0 0 6px rgba(255,255,255,.25));
   }
@@ -455,7 +455,14 @@
     youtube: 'https://youtube.com/@' + USER,
     tiktok:  'https://tiktok.com/@' + USER,
   };
-  for (const [k, url] of Object.entries(LINKS)) document.getElementById('l-' + k).href = url;
+  // sin href para que el navegador no muestre la URL abajo al pasar el mouse; se abre con clic o Enter
+  function clickable(el, fn, role = 'link') {
+    el.setAttribute('role', role); el.tabIndex = 0;
+    el.addEventListener('click', fn);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') fn(e); });
+  }
+  const openTab = url => () => window.open(url, '_blank', 'noopener');
+  for (const [k, url] of Object.entries(LINKS)) clickable(document.getElementById('l-' + k), openTab(url));
 
   // ---------- stream ----------
   // El player de Twitch solo necesita el usuario; se carga hasta que empieza para no gastar datos antes.
@@ -625,10 +632,10 @@
       const src = thumbOf(v);
       if (src) { const img = new Image(); img.src = src; img.alt = ''; img.loading = 'lazy'; img.draggable = false; a.firstChild.append(img); }
       a.lastChild.textContent = v.title;
-      if (!admin) { a.href = v.url; a.target = '_blank'; a.rel = 'noopener'; return a; }
+      if (!admin) { clickable(a, openTab(v.url)); return a; }
       // admin: clic = editar, arrastrar = reordenar
-      a.href = '#vods'; a.draggable = true;
-      a.onclick = e => { e.preventDefault(); open(i); };
+      a.draggable = true;
+      clickable(a, () => open(i), 'button');
       a.ondragstart = e => { from = i; e.dataTransfer.setData('text/plain', ''); a.classList.add('dragging'); };
       a.ondragend = () => a.classList.remove('dragging');
       a.ondragover = e => { e.preventDefault(); a.classList.add('over'); };
@@ -645,11 +652,11 @@
       grid.replaceChildren(...vods.map((v, i) => card(i, v)));
       if (admin) {
         const add = document.createElement('a');
-        add.className = 'card add'; add.href = '#vods'; add.style.setProperty('--i', vods.length);
+        add.className = 'card add'; add.style.setProperty('--i', vods.length);
         add.setAttribute('aria-label', 'Añadir VOD o clip');
         add.innerHTML = '<div class="thumb"><svg class="dash" aria-hidden="true"><rect width="100%" height="100%" rx="10"/></svg>'
           + '<svg class="plus" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M3 12h18"/></svg></div><p>&nbsp;</p>';
-        add.onclick = e => { e.preventDefault(); open(-1); };
+        clickable(add, () => open(-1), 'button');
         grid.append(add);
       }
       $('vods-empty').hidden = admin || vods.length > 0;
