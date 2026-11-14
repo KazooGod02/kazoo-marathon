@@ -184,12 +184,44 @@
     opacity: 1; visibility: visible; transform: none; filter: none;
     transition-delay: .25s, .25s, .25s, 0s;
   }
-  .vods h2, .vods-empty {
+  .tab, .soon {
     font-size: clamp(10px, .75vw, 13px); font-weight: 400; letter-spacing: .4em; padding-left: .4em;
     color: #ffd6ea; opacity: .75; text-align: center;
   }
-  .vods h2 { margin-bottom: clamp(28px, 6vh, 64px); }
-  .vods-empty { opacity: .4; margin-top: 8vh; }
+  .soon { opacity: .4; margin-top: 8vh; }
+
+  /* ---------- pestañas: los nombres van sobre un cilindro que gira; los de los lados se curvan y se desvanecen ---------- */
+  .tabs {
+    position: relative; height: 44px; max-width: 900px; margin: 0 auto clamp(28px, 6vh, 64px);
+    perspective: 700px; cursor: grab; touch-action: pan-y;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 34%, #000 66%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 34%, #000 66%, transparent);
+  }
+  .tabs.drag { cursor: grabbing; }
+  .drum { position: absolute; left: 50%; top: 50%; transform-style: preserve-3d; }
+  .tab {
+    position: absolute; left: 0; top: 0; white-space: nowrap; background: none; border: 0; padding-top: 8px; padding-bottom: 8px;
+    font-family: inherit; cursor: inherit; backface-visibility: hidden; transition: color .4s, text-shadow .4s;
+  }
+  .tab.on { color: #fff; text-shadow: 0 0 .3em rgba(255,255,255,.6), 0 0 1em rgba(255,140,210,.5); }
+  .pane { display: none; }
+  .pane.on { display: block; animation: rise .7s ease both; }
+
+  /* flechas para quien no sepa que se puede arrastrar */
+  .arrow {
+    position: fixed; top: 50%; z-index: 6; transform: translateY(-50%); background: none; border: 0; padding: 16px;
+    color: #fff; cursor: pointer; opacity: 0; visibility: hidden;
+    filter: drop-shadow(0 0 4px rgba(255,255,255,.35));
+    transition: opacity .6s, visibility 0s linear .6s, filter .35s;
+  }
+  .arrow svg { display: block; width: 16px; height: 34px; fill: none; stroke: currentColor; stroke-width: 1.3; }
+  .arrow.prev { left: clamp(2px, 1.5vw, 24px); }
+  .arrow.next { right: clamp(2px, 1.5vw, 24px); }
+  .vods-open .arrow { opacity: .55; visibility: visible; transition-delay: .6s, 0s, 0s; }
+  .vods-open .arrow:hover, .vods-open .arrow:focus-visible {
+    opacity: 1; outline: none;
+    filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 12px rgba(255,255,255,.5)) drop-shadow(0 0 26px rgba(255,140,210,.45));
+  }
   .grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
     gap: clamp(26px, 3.4vw, 44px) clamp(16px, 2.4vw, 32px); max-width: 1280px; margin: 0 auto;
@@ -297,11 +329,22 @@
     </nav>
   </main>
 
-  <section class="vods" id="vods" aria-label="VODs y clips">
-    <h2>VODS Y CLIPS</h2>
-    <div class="grid" id="grid"></div>
-    <p class="vods-empty" id="vods-empty" hidden>PRONTO</p>
+  <section class="vods" id="vods" aria-label="Kazoo Marathon">
+    <nav class="tabs" id="tabs" aria-label="Secciones"><div class="drum" id="drum"></div></nav>
+    <!-- cada .pane es una pestaña; data-label es su nombre en la rueda, en este orden -->
+    <div class="pane" data-label="REGLAS"><p class="soon">PRONTO</p></div>
+    <div class="pane" data-label="TIMELINE · DÍA 1"><p class="soon">PRONTO</p></div>
+    <div class="pane" data-label="VODS Y CLIPS" data-start>
+      <div class="grid" id="grid"></div>
+      <p class="soon" id="vods-empty" hidden>PRONTO</p>
+    </div>
+    <div class="pane" data-label="CÓMO VERLO"><p class="soon">PRONTO</p></div>
+    <div class="pane" data-label="CRÉDITOS"><p class="soon">PRONTO</p></div>
+    <!-- el Wrapped sale al final del maratón; mientras tanto solo con ?wrapped -->
+    <div class="pane" data-label="WRAPPED" data-when="wrapped"><p class="soon">PRONTO</p></div>
   </section>
+  <button class="arrow prev" id="prev" aria-label="Pestaña anterior"><svg viewBox="0 0 16 34" aria-hidden="true"><path d="M15 1 1 17l14 16"/></svg></button>
+  <button class="arrow next" id="next" aria-label="Pestaña siguiente"><svg viewBox="0 0 16 34" aria-hidden="true"><path d="m1 1 14 16L1 33"/></svg></button>
 
   <dialog class="edit" id="edit">
     <form>
@@ -591,6 +634,83 @@
     [['d', d], ['h', h], ['m', m], ['s', s]].forEach(([k, v]) => $(k).textContent = String(v).padStart(2, '0'));
   }
   tick(); setInterval(tick, 1000);
+
+  // ---------- pestañas ----------
+  // pos es continuo (0 = primera pestaña); cada nombre se coloca en el cilindro según su distancia a pos y da la vuelta en loop
+  (() => {
+    const params = new URLSearchParams(location.search);
+    const panes = [...document.querySelectorAll('.pane')].filter(p => !p.dataset.when || params.has(p.dataset.when));
+    document.querySelectorAll('.pane').forEach(p => { if (!panes.includes(p)) p.remove(); });
+    const N = panes.length, STEP = 32, wrap = $('tabs');
+    const mod = (a, n) => ((a % n) + n) % n;
+    const near = d => mod(d + N / 2, N) - N / 2;                 // distancia más corta dando la vuelta
+    const R = () => Math.max(250, Math.min(320, innerWidth * .36));   // radio del cilindro (mínimo para que no se encimen en celular)
+    const perTab = () => R() * STEP * Math.PI / 180;            // px de arrastre por pestaña
+    let pos = Math.max(0, panes.findIndex(p => p.hasAttribute('data-start'))), target = pos, raf = 0, active = -1;
+    let x0 = null, p0, lx, lt, vx, moved;
+
+    const labels = panes.map((p, i) => {
+      const b = document.createElement('button');
+      b.className = 'tab'; b.textContent = p.dataset.label;
+      b.addEventListener('click', () => { if (!moved) go(i); });
+      $('drum').append(b);
+      return b;
+    });
+    function draw() {
+      const r = R();
+      labels.forEach((b, i) => {
+        const d = near(i - pos), a = d * STEP;
+        b.style.transform = `translate(-50%, -50%) translateZ(${-r}px) rotateY(${a}deg) translateZ(${r}px)`;
+        b.style.opacity = Math.max(0, 1 - Math.abs(d) / 2.2);
+        b.style.visibility = Math.abs(a) < 80 ? 'visible' : 'hidden';
+      });
+      const now = mod(Math.round(target), N);
+      if (now !== active) {
+        active = now;
+        panes.forEach((p, i) => p.classList.toggle('on', i === now));
+        labels.forEach((b, i) => { b.classList.toggle('on', i === now); b.setAttribute('aria-current', i === now); });
+      }
+    }
+    function step() {
+      pos += (target - pos) * .14;
+      if (Math.abs(target - pos) < .001) pos = target;
+      draw();
+      raf = pos !== target ? requestAnimationFrame(step) : 0;
+    }
+    const kick = () => { if (!raf) raf = requestAnimationFrame(step); };
+    const by = n => { target = Math.round(target) + n; kick(); };
+    const go = i => by(near(i - Math.round(target)));
+
+    // arrastrar con inercia; solo captura el puntero cuando de verdad se mueve, para que el clic en un nombre siga funcionando
+    wrap.addEventListener('pointerdown', e => { x0 = lx = e.clientX; lt = e.timeStamp; p0 = pos; vx = 0; moved = false; });
+    wrap.addEventListener('pointermove', e => {
+      if (x0 === null) return;
+      if (!moved && Math.abs(e.clientX - x0) > 4) { moved = true; wrap.setPointerCapture(e.pointerId); wrap.classList.add('drag'); }
+      if (!moved) return;
+      vx = (e.clientX - lx) / Math.max(1, e.timeStamp - lt); lx = e.clientX; lt = e.timeStamp;
+      cancelAnimationFrame(raf); raf = 0;
+      pos = target = p0 - (e.clientX - x0) / perTab();
+      draw();
+    });
+    const release = () => {
+      if (x0 === null) return;
+      x0 = null; wrap.classList.remove('drag');
+      if (moved) { target = Math.round(pos - vx * 220 / perTab()); kick(); }
+      setTimeout(() => { moved = false; });                     // después del clic que genera soltar
+    };
+    wrap.addEventListener('pointerup', release);
+    wrap.addEventListener('pointercancel', release);
+
+    $('prev').onclick = () => by(-1);
+    $('next').onclick = () => by(1);
+    addEventListener('keydown', e => {
+      if (!document.documentElement.classList.contains('vods-open') || document.querySelector('dialog[open]')) return;
+      if (e.key === 'ArrowLeft') by(-1);
+      if (e.key === 'ArrowRight') by(1);
+    });
+    addEventListener('resize', draw);
+    draw();
+  })();
 
   // ---------- VODs y clips ----------
   // La lista vive en vods.json en el repo. Todos la leen; con ?admin la editas y se guarda directo en GitHub con tu token.
