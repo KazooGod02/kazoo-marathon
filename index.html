@@ -38,8 +38,11 @@
   a, svg, img { -webkit-user-drag: none; }
   /* el cursor se esconde si no se mueve. Una capa encima (en vez de solo cambiar el estilo) obliga a Chrome
      a actualizar el cursor aunque el mouse esté quieto, también en F11 y encima del player de Twitch */
-  .idle, .idle * { cursor: none !important; }
-  .idle body::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; }
+  /* solo con mouse: en celular la capa se comería el primer toque */
+  @media (hover: hover) and (pointer: fine) {
+    .idle, .idle * { cursor: none !important; }
+    .idle body::after { content: ''; position: fixed; inset: 0; z-index: 2147483647; }
+  }
 
   /* ---------- glow (WebGL) ---------- */
   #glow { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
