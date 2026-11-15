@@ -323,41 +323,44 @@
   .sanctions span:last-child { font-family: 'GTA Art Deco', sans-serif; font-size: 13px; letter-spacing: .06em; text-align: right; white-space: nowrap; }
   .sanctions .ban span:last-child { color: #ff8fc4; text-shadow: 0 0 .4em rgba(255,90,180,.7), 0 0 1.2em rgba(255,90,180,.4); }
 
-  /* timeline: hora · punto sobre la línea · momento (con su clip) */
-  .tl { list-style: none; max-width: 720px; margin: 0 auto; position: relative; }
-  .tl::before {
-    content: ''; position: absolute; left: 105px; top: 8px; bottom: 8px; width: 1px;
-    background: linear-gradient(#ff4fb0, #c03cff 75%, rgba(192,60,255,.15)); box-shadow: 0 0 8px rgba(255,80,180,.6);
+  /* timeline: línea ancha de 8 a 11 PM (Culiacán), un punto blanco por momento; clic = ver qué es */
+  .tl-wrap { max-width: 1000px; margin: 0 auto; overflow-x: auto; scrollbar-width: none; padding: 58px clamp(40px, 5vw, 64px); }
+  .tl-wrap::-webkit-scrollbar { display: none; }
+  /* en celular la línea se desliza; las orillas se desvanecen para que se note */
+  .tl-wrap { -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
+  .tl-line { position: relative; min-width: 560px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, rgba(255,79,176,.25), rgba(192,60,255,.25)); }
+  .tl-fill {
+    position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit;
+    background: linear-gradient(90deg, #ff4fb0, #c03cff) 0 0 / var(--w, 100%) 100% no-repeat;
+    box-shadow: 0 0 10px rgba(255,80,180,.7), 0 0 30px rgba(192,60,255,.4);
   }
-  .tl li { display: grid; grid-template-columns: 90px 30px 1fr; align-items: start; padding: 10px 0; }
-  .tl-t { font-family: 'GTA Art Deco', sans-serif; font-variant-numeric: tabular-nums; font-size: 13px; text-align: right; opacity: .75; padding-top: 1px; }
-  .tl-dot {
-    justify-self: center; position: relative; z-index: 1; width: 9px; height: 9px; margin-top: 4px; border-radius: 50%;
-    background: #fff; box-shadow: 0 0 6px #fff, 0 0 16px rgba(255,140,210,.8);
-  }
-  .tl-card { display: flex; gap: 14px; align-items: flex-start; }
-  .tl-card img {
-    flex: none; width: 150px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; border: 1px solid rgba(255,255,255,.12);
-    transition: transform .45s cubic-bezier(.2, .7, .2, 1), box-shadow .45s;
-  }
-  .tl-card p { font-weight: 300; font-size: 14px; line-height: 1.45; opacity: .85; transition: opacity .3s; }
-  .tl .has-clip, .tl [role=button] { cursor: pointer; }
-  .tl .has-clip:hover img, .tl [role=button]:hover img { transform: translateY(-2px); box-shadow: 0 0 24px rgba(255,90,180,.3); }
-  .tl .has-clip:hover p, .tl [role=button]:hover p { opacity: 1; }
-  .tl-now .tl-dot { background: #ff4fb0; animation: pulse 1.6s ease-in-out infinite; }
-  .tl-now .tl-t, .tl-now p { color: #ffd6ea; opacity: 1; }
-  .tl-now p, .tl-add p { font-size: 10px; letter-spacing: .4em; padding-top: 3px; }
-  .tl-now.ended .tl-dot { animation: none; background: #fff; }
+  .tl-head { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #ff4fb0; animation: pulse 1.6s ease-in-out infinite; }
   @keyframes pulse { 50% { transform: scale(1.35); box-shadow: 0 0 4px #ff4fb0, 0 0 22px 6px rgba(255,79,176,.6); } }
-  .tl-add p { opacity: .5; }
-  .tl-add .tl-dot { background: none; border: 1px dashed rgba(255,255,255,.7); box-shadow: none; }
-  @media (max-width: 560px) {
-    .tl::before { left: 81px; }
-    .tl li { grid-template-columns: 66px 30px 1fr; }
-    .tl-t { font-size: 11px; }
-    .tl-card { flex-direction: column; gap: 8px; }
-    .tl-card img { width: 100%; max-width: 240px; }
+  .tl-pt { position: absolute; top: 50%; width: 32px; height: 32px; margin: -16px 0 0 -16px; padding: 0; background: none; border: 0; color: #fff; cursor: pointer; outline: none; }
+  .tl-pt i {
+    position: absolute; inset: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 6px #fff, 0 0 16px rgba(255,140,210,.8);
+    transition: transform .45s cubic-bezier(.2, .7, .2, 1), box-shadow .45s, background .45s;
   }
+  .tl-pt.last i { inset: 5px; }
+  .tl-pt:hover i, .tl-pt:focus-visible i { transform: translateY(-7px) scale(1.12); box-shadow: 0 0 8px #fff, 0 0 26px rgba(255,140,210,.9), 0 12px 18px -6px rgba(0,0,0,.6); }
+  .tl-pt.on i { transform: translateY(-7px) scale(1.25); background: #ffe6f3; box-shadow: 0 0 10px #fff, 0 0 30px 4px rgba(255,79,176,.85), 0 12px 18px -6px rgba(0,0,0,.6); }
+  .tl-pt span {
+    position: absolute; left: 50%; top: 36px; transform: translateX(-50%); white-space: nowrap;
+    font: 11px 'GTA Art Deco', sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .04em; opacity: .55; transition: opacity .3s;
+  }
+  .tl-pt.up span { top: auto; bottom: 36px; }
+  .tl-pt:hover span, .tl-pt:focus-visible span, .tl-pt.on span { opacity: 1; }
+  .tl-card { max-width: 560px; min-height: 170px; margin: 6px auto 0; text-align: center; }
+  .tl-card > * { animation: rise .55s ease both; }
+  .tl-card .soon { margin-top: 30px; }
+  .tl-card .when { font: 12px 'GTA Art Deco', sans-serif; letter-spacing: .06em; opacity: .7; }
+  .tl-card h3 {
+    font: 400 clamp(22px, 3vw, 34px) 'GTA Art Deco', sans-serif; letter-spacing: .06em; margin: 10px 0 12px;
+    text-shadow: 0 0 .3em rgba(255,255,255,.5), 0 0 1em rgba(255,140,210,.45);
+  }
+  .tl-card > p:not(.when) { font-weight: 300; font-size: 15px; line-height: 1.5; opacity: .85; }
+  .tl-card .tag { display: inline-block; font-size: 10px; letter-spacing: .4em; padding-left: .4em; color: #ff8fc4; margin-bottom: 10px; text-shadow: 0 0 .5em rgba(255,90,180,.8); }
+  .tl-card .card { max-width: 320px; margin: 26px auto 0; text-align: left; }
 
   /* cómo verlo */
   .watch { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; max-width: 1000px; margin: 0 auto; }
@@ -507,8 +510,8 @@
       </div>
     </div>
     <div class="pane" data-label="TIMELINE · DÍA 1">
-      <ol class="tl" id="tl"></ol>
-      <p class="soon" id="tl-empty" hidden>EMPIEZA CON EL STREAM</p>
+      <div class="tl-wrap st"><div class="tl-line" id="tl-line"><i class="tl-fill" id="tl-fill"></i><i class="tl-head" id="tl-head" hidden></i></div></div>
+      <div class="tl-card" id="tl-card"></div>
     </div>
     <div class="pane" data-label="VODS Y CLIPS" data-start>
       <div class="grid" id="grid"></div>
@@ -554,7 +557,6 @@
         <input type="file" accept="image/*" id="f-file" hidden>
         <span>SUBIR MINIATURA</span>
       </label>
-      <label id="f-time-row">MOMENTO DEL STREAM<input id="f-time" placeholder="00:00:00" inputmode="numeric"></label>
       <label>ENLACE<input id="f-url" type="url" placeholder="https://"></label>
       <label>TÍTULO<input id="f-title" required maxlength="120"></label>
       <label class="tok">TOKEN DE GITHUB<input type="password" autocomplete="off"></label>
@@ -895,8 +897,7 @@
 
   const ytId = u => (String(u).match(/(?:youtu\.be\/|[?&]v=|\/(?:live|shorts|embed)\/)([\w-]{11})/) || [])[1];
   const thumbOf = (v, file) => file || DB.local[v.thumb] || v.thumb || (ytId(v.url) ? `https://i.ytimg.com/vi/${ytId(v.url)}/hqdefault.jpg` : '');
-  const hms = s => [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(v => String(v).padStart(2, '0')).join(':');
-  const secs = str => String(str).split(':').reduce((a, v) => a * 60 + (parseInt(v) || 0), 0);
+  const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text != null ? { textContent: text } : {});
   const wrappedData = DB.load('wrapped.json', []);
 
   // ---------- editores (solo ?admin) ----------
@@ -928,8 +929,8 @@
     img.onerror = () => rej(new Error('No se pudo leer la imagen'));
     img.src = URL.createObjectURL(f);
   });
-  // VODs y momentos del timeline: { url, title, thumb, t }
-  function editItem(item, { time = false, needUrl = true, onSave, onDelete }) {
+  // VODs y clips del timeline: { url, title, thumb }
+  function editItem(item, { onSave, onDelete }) {
     const dlg = $('edit'), pick = $('pick');
     let file = null;
     const preview = () => {
@@ -938,8 +939,7 @@
       pick.classList.toggle('has', !!src);
     };
     $('f-url').value = item.url || ''; $('f-title').value = item.title || ''; $('f-file').value = '';
-    $('f-url').required = needUrl;
-    $('f-time-row').hidden = !time; $('f-time').value = time ? hms(item.t || 0) : '';
+    $('f-url').required = true;
     $('f-del').hidden = !onDelete;
     $('f-del').onclick = () => { if (confirm(`¿Quitar "${item.title}"?`)) { dlg.close(); onDelete().catch(e => alert(e.message)); } };
     $('f-file').onchange = async e => { if (e.target.files[0]) { file = await shrink(e.target.files[0]).catch(() => null); preview(); } };
@@ -948,9 +948,8 @@
     dialogSave(dlg, async () => {
       const url = $('f-url').value.trim(), title = $('f-title').value.trim();
       if (url && !/^https?:\/\//i.test(url)) throw new Error('El enlace debe empezar con https://');
-      if (needUrl && !file && !item.thumb && !ytId(url)) throw new Error('Sube una miniatura (solo YouTube se saca sola)');
+      if (!file && !item.thumb && !ytId(url)) throw new Error('Sube una miniatura (solo YouTube se saca sola)');
       const v = { ...item, url, title };
-      if (time) v.t = secs($('f-time').value);
       if (file) v.thumb = await DB.upload(file, 'Miniatura: ' + title);
       await onSave(v);
     });
@@ -1087,59 +1086,78 @@
   })();
 
   // ---------- timeline del día 1 ----------
-  // Momentos marcados con la hora del stream; al final va el "ahora", que avanza con el tiempo en vivo y se congela al acabar.
+  // El plan de la noche: [inicio, fin] en minutos desde las 8:00 PM Culiacán; cada quien lo ve en su hora.
+  // timeline.json guarda el clip de cada momento: [{ m, url, title, thumb }]
   (() => {
-    const list = $('tl'), root = document.documentElement;
-    let items = [];
-    const save = msg => { render(); return DB.save('timeline.json', items, msg); };
-    const edit = i => editItem(items[i] || { t: secs($('elapsed').textContent) }, {
-      time: true, needUrl: false,
-      onSave: v => {
-        i >= 0 ? (items[i] = v) : items.push(v);
-        items.sort((a, b) => a.t - b.t);
-        return save((i >= 0 ? 'Editar' : 'Marcar') + ' momento: ' + v.title);
-      },
-      onDelete: i >= 0 && (() => { items.splice(i, 1); return save('Quitar momento'); }),
+    const PLAN = [
+      [0,   30,  'ARRANCA', 'Empieza la Kazoo Marathon.'],
+      [30,  60,  'CENA GTA 6', 'Cenamos en stream antes de lo bueno.'],
+      [60,  90,  'PREDICCIONES', 'Con mis amigos: predicciones de GTA 6 y plática.'],
+      [90,  120, 'NOSTALGIA GTA V', 'Reacciones a lo mejor de GTA V antes de despedirnos.'],
+      [120, 150, 'LAST DRIVE', 'El último paseo por Los Santos.'],
+      [150, 175, 'TRAILERS', 'Último vistazo a los trailers de GTA 6.'],
+      [175, 180, 'CUENTA REGRESIVA', 'Los últimos cinco minutos.'],
+      [180, 0,   'GTA VI', 'Empieza el juego.'],
+    ];
+    const END = 180, root = document.documentElement, line = $('tl-line'), box = $('tl-card');
+    const at = m => new Date(T + m * 6e4);
+    const hour = m => at(m).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    // si en tu zona ya es otro día, se pone la fecha
+    const when = m => (at(m).toDateString() !== at(0).toDateString()
+      ? `${at(m).getDate()} ${at(m).toLocaleString('es', { month: 'short' }).replace('.', '').toUpperCase()} · ` : '') + hour(m);
+    let clips = [], sel = -1, cur = -1;
+    const clipOf = m => clips.find(c => c.m === m);
+
+    const pts = PLAN.map(([m, , title], i) => {
+      const b = el('button', 'tl-pt' + (i % 2 ? ' up' : '') + (i === PLAN.length - 1 ? ' last' : ''));
+      b.style.left = m / END * 100 + '%';
+      b.append(el('i'), el('span', '', hour(m)));
+      b.setAttribute('aria-label', hour(m) + ' · ' + title);
+      b.onclick = () => show(i);
+      line.append(b);
+      return b;
     });
-    function row(cls, i) {
-      const li = document.createElement('li');
-      li.className = cls + ' st'; li.style.setProperty('--i', i);
-      li.innerHTML = '<span class="tl-t"></span><span class="tl-dot"></span><div class="tl-card"><p></p></div>';
-      return li;
-    }
-    function render() {
-      const rows = items.map((v, i) => {
-        const li = row('tl-item', i), card = li.lastChild, src = thumbOf(v);
-        li.firstChild.textContent = hms(v.t);
-        card.firstChild.textContent = v.title;
-        if (src) { const img = new Image(); img.src = src; img.alt = ''; img.loading = 'lazy'; card.prepend(img); }
-        if (DB.admin) clickable(li, () => edit(i), 'button');
-        else if (v.url) { li.classList.add('has-clip'); clickable(li, openTab(v.url)); }
-        return li;
-      });
-      rows.push(row('tl-now', items.length));
-      if (DB.admin) {
-        const add = row('tl-add', items.length + 1);
-        add.querySelector('p').textContent = '+ MARCAR MOMENTO';
-        clickable(add, () => edit(-1), 'button');
-        rows.push(add);
+    const save = (i, msg) => { show(i); return DB.save('timeline.json', clips, msg); };
+    function show(i) {
+      sel = i;
+      pts.forEach((b, j) => { b.classList.toggle('on', j === i); b.setAttribute('aria-pressed', j === i); });
+      if (i < 0) return box.replaceChildren(el('p', 'soon', 'TOCA UN PUNTO'));
+      pts[i].scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });   // en celular centra el punto
+      const [m, end, title, what] = PLAN[i], clip = clipOf(m), kids = [];
+      if (i === cur) kids.push(el('span', 'tag', 'AHORA'));
+      kids.push(el('p', 'when', end ? `${when(m)} – ${hour(end)}` : when(m)), el('h3', '', title), el('p', '', what));
+      if (clip) {
+        const a = el('a', 'card'), th = el('div', 'thumb'), src = thumbOf(clip);
+        if (src) { const img = new Image(); img.src = src; img.alt = ''; th.append(img); }
+        a.append(th, el('p', '', clip.title));
+        clickable(a, openTab(clip.url));
+        kids.push(a);
       }
-      list.replaceChildren(...rows);
-      update();
+      if (DB.admin) {
+        const b = el('button', 'admin-edit', clip ? 'EDITAR CLIP' : '+ AÑADIR CLIP');
+        b.onclick = () => editItem(clip || { m, title }, {
+          onSave: v => { clip ? clips.splice(clips.indexOf(clip), 1, v) : clips.push(v); return save(i, 'Clip del timeline: ' + v.title); },
+          onDelete: clip && (() => { clips.splice(clips.indexOf(clip), 1); return save(i, 'Quitar clip: ' + title); }),
+        });
+        kids.push(b);
+      }
+      box.replaceChildren(...kids);
     }
-    // el "ahora" copia el tiempo en vivo de la portada, que ya se congela solo al acabar
+    // la línea se llena con el tiempo del stream; al acabar se queda donde iba
     function update() {
-      const now = list.querySelector('.tl-now');
-      if (!now) return;
-      const live = root.classList.contains('live'), ended = root.classList.contains('ended');
-      now.hidden = !live;
-      now.firstChild.textContent = $('elapsed').textContent;
-      now.querySelector('p').textContent = ended ? 'FIN DEL DÍA 1' : 'EN VIVO';
-      now.classList.toggle('ended', ended);
-      $('tl-empty').hidden = live || items.length > 0 || DB.admin;
+      if (root.classList.contains('ended')) { $('tl-head').hidden = true; if (cur >= 0) { cur = -1; show(sel); } return; }
+      const p = root.classList.contains('live') ? Math.min(1, Math.max(0, (Date.now() - liveStart) / (END * 6e4))) : 0;
+      $('tl-fill').style.width = p * 100 + '%';
+      $('tl-fill').style.setProperty('--w', line.clientWidth + 'px');
+      $('tl-head').style.left = p * 100 + '%';
+      $('tl-head').hidden = !p || p >= 1;
+      const now = p > 0 && p < 1 ? PLAN.findIndex(([a, b]) => p * END >= a && p * END < b) : -1;
+      if (now !== cur) { const follow = sel === cur; cur = now; show(follow ? cur : sel); }
     }
-    setInterval(update, 1000);
-    DB.load('timeline.json', []).then(d => { items = d.sort((a, b) => a.t - b.t); render(); });
+    show(-1);
+    update(); setInterval(update, 1000);
+    addEventListener('resize', () => $('tl-fill').style.setProperty('--w', line.clientWidth + 'px'));
+    DB.load('timeline.json', []).then(d => { clips = d; show(sel); });
   })();
 
   // ---------- cómo verlo ----------
@@ -1196,7 +1214,6 @@
     const K = document.querySelector('.wrapped-cta svg').outerHTML.replace('<svg', '<svg class="story-k"');
     let slides = [], idx = 0, elapsed = 0, last = 0, raf = 0, paused = false, downAt = 0;
     const all = () => [{ type: 'intro' }, ...slides, { type: 'outro' }];
-    const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text != null ? { textContent: text } : {});
     const btn = (text, fn) => { const b = el('button', 'pill', text); b.onclick = fn; return b; };
 
     function show(i) {
