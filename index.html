@@ -851,7 +851,8 @@
   const liveStart = forceLive && Date.now() < T ? Date.now() : T;       // en preview el tiempo corre desde que abres
   const $ = id => document.getElementById(id);
   // Cronómetro de Kazoo App: el puente de la PC del stream publica estado.json { acumuladoMs, desde } solo al pausar/reanudar.
-  // Se lee de la API de GitHub (al instante); si falla (límite de 60/h), del archivo publicado. Sin él, cuenta desde las 8 PM.
+  // Se lee de la API de GitHub (al instante); si falla (límite de 60/h), del archivo publicado. Solo muestra horas reales:
+  // hasta que llega el primer estado se queda en 00:00:00.
   let crono = null;
   async function leerCrono() {
     for (const [url, opt] of [
@@ -869,10 +870,9 @@
   function tick() {
     if (forceLive || Date.now() >= T) {
       goLive();
-      // sin el cronómetro de Kazoo App, el tiempo se congela mientras no hay stream (con él ya viene en pausa)
-      if (document.documentElement.classList.contains('ended') && !crono && tick.done) return;
-      tick.done = true;
-      // tiempo que lleva el stream; las horas siguen subiendo después de 24
+      // horas jugadas = cronómetro de Kazoo App (se pausa desde la app); ?live sin cronómetro cuenta desde que abres
+      if (!crono && !forceLive) return;
+      // las horas siguen subiendo después de 24
       let e = Math.max(0, Math.floor((crono ? crono.acumuladoMs + (crono.desde ? Date.now() - crono.desde : 0) : Date.now() - liveStart) / 1000));
       const eh = Math.floor(e / 3600); e %= 3600;
       $('elapsed').textContent = [eh, Math.floor(e / 60), e % 60].map(v => String(v).padStart(2, '0')).join(':');
