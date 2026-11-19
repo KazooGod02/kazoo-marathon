@@ -116,18 +116,18 @@
   }
   .live .elapsed { display: block; animation: rise 1.4s ease both; }
   .player {
-    display: none; width: min(880px, 100%, calc((100vh - 300px) * 16 / 9)); aspect-ratio: 16 / 9;
+    display: none; width: min(1280px, 100%, calc((100vh - 300px) * 16 / 9)); aspect-ratio: 16 / 9;   /* más grande = YouTube manda más calidad */
     border-radius: 14px; overflow: hidden; background: #000;
     border: 1px solid rgba(255,255,255,.12);
     box-shadow: 0 0 40px rgba(255,90,180,.18), 0 0 120px rgba(150,60,255,.15);
   }
-  .player iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .player iframe, #player { width: 100%; height: 100%; border: 0; display: block; }
   .live .player { display: block; animation: rise 1.4s ease both; }
-  /* ---------- al acabar: sin player, el tiempo congelado al centro ---------- */
-  .ended-label { display: none; font-size: clamp(10px, .75vw, 13px); letter-spacing: .4em; padding-left: .4em; color: #ffd6ea; opacity: .75; }
+  /* ---------- sin stream (.ended): sin player, las horas jugadas en grande al centro ---------- */
+  .ended-label { display: none; font-size: clamp(11px, .95vw, 16px); letter-spacing: .4em; padding-left: .4em; color: #ffd6ea; opacity: .75; }
   .ended .ended-label { display: block; animation: rise 1.4s ease both; margin-bottom: calc(-1 * clamp(8px, 2vh, 22px)); }
   .ended .player { display: none; }
-  .ended .elapsed { font-size: clamp(28px, 3.6vw, 68px); margin-bottom: 0; opacity: 1; }
+  .ended .elapsed { font-size: clamp(46px, 7vw, 124px); margin-bottom: 0; opacity: 1; }
   @keyframes rise { from { opacity: 0; transform: translateY(14px) scale(.98); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
 
   /* ---------- VI → logo ---------- */
@@ -460,9 +460,9 @@
       <div class="unit"><span class="num" id="s">00</span><small>SEG</small></div>
     </div>
     <p class="date">18 NOV · 8:00 PM</p>
-    <p class="ended-label">TIEMPO TRANSCURRIDO</p>
+    <p class="ended-label">HORAS JUGADAS</p>
     <div class="elapsed" id="elapsed" aria-label="Tiempo en vivo">00:00:00</div>
-    <div class="player" id="player"></div>
+    <div class="player"><div id="player"></div></div>
     <nav class="links" aria-label="Plataformas">
       <a id="l-twitch" aria-label="Twitch" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
@@ -729,33 +729,45 @@
   for (const [k, url] of Object.entries(LINKS)) clickable(document.getElementById('l-' + k), openTab(url));
 
   // ---------- stream ----------
-  // El player de Twitch solo necesita el usuario; se carga hasta que empieza para no gastar datos antes.
+  // Player en vivo del canal de YouTube. Si el canal no está en vivo, YouTube da error: se quita el cuadro, quedan las
+  // horas jugadas al centro (.ended) y cada minuto se vuelve a revisar. Se carga hasta que empieza para no gastar datos antes.
+  // YouTube elige la calidad según el tamaño del cuadro y la conexión; no se puede forzar desde la página.
+  const YT_CHANNEL = 'UCYpZdxCsTjOEmFKuVDz7kZQ';
   function goLive() {
     const root = document.documentElement;
     if (root.classList.contains('live')) return;
-    root.classList.add('live');
-    const parents = [...new Set(['kazoogod02.github.io', location.hostname || 'localhost'])];
-    // ?canal=otro para previsualizar con un stream que esté en vivo ahorita
-    const channel = new URLSearchParams(location.search).get('canal') || USER;
-    // API de embed de Twitch: avisa cuando el preview de verdad está reproduciendo, para callar la música
-    const js = document.createElement('script');
-    js.src = 'https://player.twitch.tv/js/embed/v1.js';
-    js.onload = () => {
-      const p = new Twitch.Player('player', {
-        channel, parent: parents, muted: true, autoplay: true, width: '100%', height: '100%',
-      });
-      // si ya estuvo en vivo y se apaga, terminó: se va el player y el tiempo se congela
-      p.addEventListener(Twitch.Player.PLAYING, () => { streaming = true; music.pause(); root.classList.remove('ended'); });
-      p.addEventListener(Twitch.Player.OFFLINE, () => {
-        if (streaming) root.classList.add('ended');
-        streaming = false; playMusic();
+    root.classList.add('live', 'ended');
+    // ?canal=UC… para previsualizar con un canal que esté en vivo ahorita
+    const channel = new URLSearchParams(location.search).get('canal') || YT_CHANNEL;
+    let p, retry;
+    const offline = () => {
+      root.classList.add('ended'); streaming = false; playMusic();
+      clearTimeout(retry); retry = setTimeout(load, 60000);
+    };
+    const load = () => {
+      if (p) p.destroy();
+      p = new YT.Player('player', {
+        width: '100%', height: '100%', videoId: 'live_stream',
+        playerVars: { channel, autoplay: 1, mute: 1, playsinline: 1, rel: 0 },
+        events: {
+          // hay directo: se muestra el cuadro (oculto no siempre arranca solo)
+          onReady: () => { if (p.getVideoData().isPlayable) { root.classList.remove('ended'); p.playVideo(); } },
+          onStateChange: e => {
+            if (e.data === YT.PlayerState.PLAYING) { streaming = true; music.pause(); root.classList.remove('ended'); clearTimeout(retry); }
+            if (e.data === YT.PlayerState.ENDED) offline();
+          },
+          onError: offline,
+        },
       });
     };
+    window.onYouTubeIframeAPIReady = load;
+    const js = document.createElement('script');
+    js.src = 'https://www.youtube.com/iframe_api';
     document.head.appendChild(js);
   }
 
   // ---------- música de espera ----------
-  // Suena al entrar y se calla cuando el player de Twitch está mostrando el stream.
+  // Suena al entrar y se calla cuando el player de YouTube está mostrando el stream.
   const music = new Audio('pause.mp3');
   music.loop = true;
   let streaming = false;
@@ -857,7 +869,9 @@
   function tick() {
     if (forceLive || Date.now() >= T) {
       goLive();
-      if (document.documentElement.classList.contains('ended')) return;   // congelado al acabar
+      // sin el cronómetro de Kazoo App, el tiempo se congela mientras no hay stream (con él ya viene en pausa)
+      if (document.documentElement.classList.contains('ended') && !crono && tick.done) return;
+      tick.done = true;
       // tiempo que lleva el stream; las horas siguen subiendo después de 24
       let e = Math.max(0, Math.floor((crono ? crono.acumuladoMs + (crono.desde ? Date.now() - crono.desde : 0) : Date.now() - liveStart) / 1000));
       const eh = Math.floor(e / 3600); e %= 3600;
@@ -1164,7 +1178,6 @@
     }
     // la línea se llena con el tiempo del stream; al acabar se queda donde iba
     function update() {
-      if (root.classList.contains('ended')) { $('tl-head').hidden = true; if (cur >= 0) { cur = -1; show(sel); } return; }
       const p = root.classList.contains('live') ? Math.min(1, Math.max(0, (Date.now() - liveStart) / (END * 6e4))) : 0;
       $('tl-fill').style.width = p * 100 + '%';
       $('tl-fill').style.setProperty('--w', line.clientWidth + 'px');
@@ -1182,9 +1195,9 @@
   // ---------- cómo verlo ----------
   (() => {
     const WHAT = {
-      twitch: 'Señal principal, con chat. Es la que sale en esta página.',
+      twitch: 'En vivo al mismo tiempo, con chat.',
       kick: 'En vivo al mismo tiempo.',
-      youtube: 'En vivo al mismo tiempo.',
+      youtube: 'Es la que sale en esta página, en la mejor calidad.',
       tiktok: 'En vivo al mismo tiempo.',
     };
     $('watch').replaceChildren(...Object.entries(WHAT).map(([k, what], i) => {
